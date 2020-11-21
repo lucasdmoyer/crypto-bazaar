@@ -1,4 +1,5 @@
 # Welcome to Crypto-Bazaar!
+Part of UT Dallas FIN 6392
 based of truffle petshop tutorial:
 https://www.trufflesuite.com/tutorials/pet-shop
 # to run this application

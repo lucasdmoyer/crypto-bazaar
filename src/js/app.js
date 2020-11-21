@@ -4,19 +4,19 @@ App = {
 
   init: async function () {
     // Load pets.
-    $.getJSON('../pets.json', function (data) {
-      var petsRow = $('#petsRow');
-      var petTemplate = $('#petTemplate');
+    $.getJSON('../estates.json', function (data) {
+      var estatesRow = $('#estatesRow');
+      var estatesTemplate = $('#estatesTemplate');
 
       for (i = 0; i < data.length; i++) {
-        petTemplate.find('.panel-title').text(data[i].name);
-        petTemplate.find('img').attr('src', data[i].picture);
-        petTemplate.find('.pet-breed').text(data[i].breed);
-        petTemplate.find('.pet-age').text(data[i].age);
-        petTemplate.find('.pet-location').text(data[i].location);
-        petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
+        estatesTemplate.find('.panel-title').text(data[i].name);
+        estatesTemplate.find('img').attr('src', data[i].picture);
+        estatesTemplate.find('.price').text(data[i].price);
+        estatesTemplate.find('.description').text(data[i].description);
+        estatesTemplate.find('.location').text(data[i].location);
+        estatesTemplate.find('.btn-adopt').attr('data-id', data[i].id);
 
-        petsRow.append(petTemplate.html());
+        estatesRow.append(estatesTemplate.html());
       }
     });
 
