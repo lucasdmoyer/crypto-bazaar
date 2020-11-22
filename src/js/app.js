@@ -49,7 +49,7 @@ App = {
   },
 
   initContract: function () {
-    $.getJSON('Adoption.json', function (data) {
+    $.getJSON('Estate.json', function (data) {
       // Get the necessary contract artifact file and instantiate it with @truffle/contract
       var AdoptionArtifact = data;
       App.contracts.Adoption = TruffleContract(AdoptionArtifact);
@@ -89,8 +89,8 @@ App = {
   handleAdopt: function (event) {
     event.preventDefault();
 
-    var petId = parseInt($(event.target).data('id'));
-
+    var estateId = parseInt($(event.target).data('id'));
+    
     var adoptionInstance;
 
     web3.eth.getAccounts(function (error, accounts) {
@@ -104,7 +104,7 @@ App = {
         adoptionInstance = instance;
 
         // Execute adopt as a transaction by sending account
-        return adoptionInstance.adopt(petId, { from: account });
+        return adoptionInstance.transfer(estateId, { from: account });
       }).then(function (result) {
         return App.markAdopted();
       }).catch(function (err) {
