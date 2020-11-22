@@ -8,14 +8,14 @@ contract Estate {
       address payable owner;
       uint256 price;
     }
-   House[100] public houses;
+   House[16] public houses;
     address[16] public owners;
 
     // add houses if you are the owner of the contract
     //1,0xA340E91B92A1B88690a2f9A3F049Cf647288aC1B,1000000
-    function addHouse(uint256 price) public returns (uint256){
-        houses[count] = House(count, msg.sender, price);
-        owners[count] = msg.sender;
+    function addHouse(uint256 price, address payable home_owner) public returns (uint256){
+        houses[count] = House(count, home_owner, price);
+        owners[count] = home_owner;
         count += 1;
         return (count-1);
     }
