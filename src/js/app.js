@@ -77,11 +77,12 @@ App = {
     let estateInstance = await App.contracts.Estate.deployed();
     owner = web3.eth.accounts[0];
 
-    await estateInstance.addHouse($("#price").val(), $("#description").val(), $("#location").val(), { from: owner, gas: 3000000 });
+    await estateInstance.addHouse($("#price").val(), $("#description").val(), $("#location").val(), $("#imgUrl").val(), { from: owner, gas: 3000000 });
     alert("House added!");
     $("#price").val("");
     $("#description").val("");
     $("#location").val("");
+    $("#imgUrl").val("")
     App.getHouses();
     
   },
@@ -102,11 +103,13 @@ App = {
     for (i = 0; i < 16; i++) {
       house = await estateInstance.getHouse(i);
       if (house) {
+        console.log(house);
         row = {
           price: house[1]['c'][0],
           owner: house[0],
           desc: house[2],
           loc: house[3],
+          imgUrl: house[4]
         }
         data.push(row);
       }
@@ -120,7 +123,9 @@ App = {
     var estatesTemplate = $('#estatesTemplate');
     for (i = 0; i < num_houses.length; i++) {
       estatesTemplate.find('.panel-title').text(data[i].desc);
-      //estatesTemplate.find('img').attr('src', data[i].picture);
+      estatesTemplate.find('img').attr('src', data[i].imgUrl);
+      console.log("New image is");
+      console.log(data[i].imgUrl);
       estatesTemplate.find('.owner').text(data[i].owner);
       estatesTemplate.find('.price').text(data[i].price);
       estatesTemplate.find('.location').text(data[i].loc);
@@ -144,6 +149,7 @@ App = {
           owner: house[0],
           desc: house[2],
           loc: house[3],
+          imgUrl: house[4]
         }
         data.push(row);
       }
