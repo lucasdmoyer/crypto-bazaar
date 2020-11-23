@@ -2,10 +2,9 @@ pragma solidity ^0.5.0;
 
 contract Estate {
 
-    uint256 count = 0;
+    uint256 public count = 0;
 
     struct House {
-        uint256 id;
         address payable owner;
         uint256 price;
     }
@@ -14,16 +13,19 @@ contract Estate {
     mapping (address => uint) pendingWithdrawals;
 
 
+    event HouseAdded(address owner, uint256 price);
+
     // add houses if you are the owner of the contract
     //1,0xA340E91B92A1B88690a2f9A3F049Cf647288aC1B,1000000
-    function addHouse(uint256 price, address payable _owner)
+    function addHouse(uint256 price)
         public
         returns (uint256)
     {
-        houses[count] = House(count, _owner, price);
-        owners[count] = _owner;
+        houses[count] = House(msg.sender, price);
+        owners[count] = msg.sender;
         //idtoHouse[count] = houses[count]
         count += 1;
+        emit HouseAdded(msg.sender,price);
         return (count - 1);
     }
 
@@ -57,17 +59,25 @@ contract Estate {
     function getOwners() public view returns (address[16] memory) {
         return owners;
     }
-
-    function getHouse(uint256 estateID)
-        public
-        view
-        returns (
-            uint256,
-            address payable,
-            uint256
-        )
-    {
-        House storage house = houses[estateID];
-        return (house.id, house.owner, house.price);
+    
+    function getHouse(uint index) public view returns(address , uint256 ) {
+        return (houses[index].owner,houses[index].price);
     }
+    
+    function getHouseCount() public view returns(uint) {
+        return houses.length;
+    }
+
+    // function getHouse(uint256 estateID)
+    //     public
+    //     view
+    //     returns (
+    //         uint256,
+    //         address payable,
+    //         uint256
+    //     )
+    // {
+    //     House storage house = houses[estateID];
+    //     return (house.id, house.owner, house.price);
+    // }
 }
