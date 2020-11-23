@@ -83,6 +83,7 @@ App = {
     $("#description").val("");
     $("#location").val("");
     App.getHouses();
+    
   },
 
   withdraw: async function () {
@@ -92,11 +93,9 @@ App = {
 
     await estateInstance.withdraw({ from: owner, gas: 3000000 });
     alert("You withdrew your money!");
-    await App.getHouses();
   },
 
   getHouses: async function () {
-    console.log("get houses called")
     let estateInstance = await App.contracts.Estate.deployed();
 
     data = [];
@@ -111,15 +110,13 @@ App = {
         }
         data.push(row);
       }
-      
-      
     }
-    console.log(data);
     var num_houses = data.filter(function (elem) {
       return elem.price != 0;
     })
 
     var estatesRow = $('#estatesRow');
+    estatesRow.empty();
     var estatesTemplate = $('#estatesTemplate');
     for (i = 0; i < num_houses.length; i++) {
       estatesTemplate.find('.panel-title').text(data[i].desc);
@@ -130,11 +127,10 @@ App = {
       estatesTemplate.find('.btn-adopt').attr('data-id', i);
       estatesRow.append(estatesTemplate.html());
     }
-    await App.markBought();
+    App.markBought();
   },
 
   markBought: async function () {
-    console.log("mark bought called");
     owner = web3.eth.accounts[0];
     let estateInstance = await App.contracts.Estate.deployed();
 
@@ -167,8 +163,6 @@ App = {
     event.preventDefault();
 
     var estateId = parseInt($(event.target).data('id'));
-    console.log(estateId);
-    
     let estateInstance = await App.contracts.Estate.deployed();
     house = await estateInstance.getHouse(estateId);
     row = {
@@ -177,13 +171,10 @@ App = {
       desc: house[2],
       loc: house[3],
     }
-    console.log(row);
     owner = web3.eth.accounts[0];
-
-    //await estateInstance.addHouse($("#price").val(), $("#description").val(), $("#location").val(), { from: owner, gas: 3000000 });
     await estateInstance.buyHouse(estateId, { from: owner, to: row.owner, value: web3.toWei(row.price, "ether"), gas: 3000000 });
     alert("Congratulations on your purchase!");
-    App.markBought();
+    await App.getHouses();
 
   }
 
