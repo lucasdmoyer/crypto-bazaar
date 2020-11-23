@@ -103,7 +103,6 @@ App = {
     for (i = 0; i < 16; i++) {
       house = await estateInstance.getHouse(i);
       if (house) {
-        console.log(house);
         row = {
           price: house[1]['c'][0],
           owner: house[0],
