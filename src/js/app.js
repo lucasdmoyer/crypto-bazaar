@@ -4,21 +4,21 @@ App = {
 
   init: async function () {
     // Load pets.
-    $.getJSON('../estates.json', function (data) {
-      var estatesRow = $('#estatesRow');
-      var estatesTemplate = $('#estatesTemplate');
+    // $.getJSON('../estates.json', function (data) {
+    //   var estatesRow = $('#estatesRow');
+    //   var estatesTemplate = $('#estatesTemplate');
 
-      for (i = 0; i < data.length; i++) {
-        estatesTemplate.find('.panel-title').text(data[i].name);
-        estatesTemplate.find('img').attr('src', data[i].picture);
-        estatesTemplate.find('.price').text(data[i].price);
-        estatesTemplate.find('.description').text(data[i].description);
-        estatesTemplate.find('.location').text(data[i].location);
-        estatesTemplate.find('.btn-adopt').attr('data-id', data[i].id);
+    //   for (i = 0; i < data.length; i++) {
+    //     estatesTemplate.find('.panel-title').text(data[i].name);
+    //     estatesTemplate.find('img').attr('src', data[i].picture);
+    //     estatesTemplate.find('.price').text(data[i].price);
+    //     estatesTemplate.find('.description').text(data[i].description);
+    //     estatesTemplate.find('.location').text(data[i].location);
+    //     estatesTemplate.find('.btn-adopt').attr('data-id', data[i].id);
 
-        estatesRow.append(estatesTemplate.html());
-      }
-    });
+    //     estatesRow.append(estatesTemplate.html());
+    //   }
+    // });
 
     return await App.initWeb3();
   },
@@ -73,59 +73,89 @@ App = {
     $(document).on('click', '.btn-getHouse', App.getHouses);
   },
 
-  getHouses: function () {
-    console.log("get houses called")
-    var estateInstance;
+  // getHouses: function () {
+  //   console.log("get houses called")
+  //   var estateInstance;
 
-    App.contracts.Estate.deployed().then(function (instance) {
-      estateInstance = instance;
-      console.log(estateInstance);
+  //   App.contracts.Estate.deployed().then(function (instance) {
+  //     estateInstance = instance;
+  //     console.log(estateInstance);
 
-      return estateInstance.getOwners.call();
-    }).then(function (houses) {
-      console.log(houses)
-    }).catch(function (err) {
-      console.log(err.message);
-    });
-  },
+  //     return estateInstance.getOwners.call();
+  //   }).then(function (houses) {
+  //     console.log(houses)
+  //   }).catch(function (err) {
+  //     console.log(err.message);
+  //   });
+  // },
   addHouse: async function () {
     console.log("add houses called")
     let estateInstance = await App.contracts.Estate.deployed();
-
-
-    console.log(estateInstance);
     owner = web3.eth.accounts[0];
 
-    console.log(owner);
-    estateInstance.addHouse(24, { from: owner, gas: 3000000 });
+    await estateInstance.addHouse($("#price").val(),$("#description").val(), $("#location").val(), { from: owner, gas: 3000000 });
+    alert("House added!");
+    $("#price").val("");
+    $("#description").val("");
+    $("#location").val("");
+    App.getHouses();
+    // $(document).ready(function(){
+    //   $("form").submit(function(){
+        
+    //   });
+    // });
+
+
+    
 
   },
 
-  // getHouses: async function () {
-  //   console.log("get houses called")
-  //   let estateInstance = await App.contracts.Estate.deployed();
+  getHouses: async function () {
+    console.log("get houses called")
+    let estateInstance = await App.contracts.Estate.deployed();
 
-  //   // App.contracts.Estate.deployed().then(function (instance) {
-  //   //   estateInstance = instance;
-  //   console.log(estateInstance);
-  //   let house =null;
-  //   house = await estateInstance.getHouse(0);
-  //   // houses = [];
-  //   // for (i = 0; i < 16; i++) {
-  //   //   console.log(i);
-  //   //   house = await estateInstance.getHouse(i);
-  //   //   console.log(house);
-  //   // }
-  //   console.log(house);
+    // App.contracts.Estate.deployed().then(function (instance) {
+    //   estateInstance = instance;
+    console.log(estateInstance);
+    let house =null;
+    house = await estateInstance.getHouse(0);
+    data = [];
+    for (i = 0; i < 16; i++) {
+      //console.log(i);
+      house = await estateInstance.getHouse(i);
 
-  //   //   return estateInstance.getHouse.call(0);
-  //   // }).then(function (houses) {
-  //   //   console.log(houses)
-  //   //   return houses;
-  //   // }).catch(function (err) {
-  //   //   console.log(err.message);
-  //   // });
-  // },
+      row = {
+        price: house[1]['c'][0],
+        owner : house[0],
+        desc: house[2],
+        loc: house[3],
+      }
+      data.push(row);
+    }
+    console.log(data);
+
+    var num_houses = data.filter(function(elem) {
+      return elem.price != 0;
+    })
+    console.log(num_houses.length);
+
+    var estatesRow = $('#estatesRow');
+    var estatesTemplate = $('#estatesTemplate');
+    for (i =0; i < num_houses.length; i++) {
+      console.log(i);
+      console.log(data[i]);
+      estatesTemplate.find('.panel-title').text(data[i].desc);
+      //estatesTemplate.find('img').attr('src', data[i].picture);
+      estatesTemplate.find('.owner').text(data[i].owner);
+      estatesTemplate.find('.price').text(data[i].price);
+      estatesTemplate.find('.location').text(data[i].loc);
+      estatesTemplate.find('.btn-adopt').attr('data-id', data[i].id);
+
+      estatesRow.append(estatesTemplate.html());
+    }
+
+
+  },
 
   markAdopted: function () {
     var estateInstance;
@@ -150,7 +180,7 @@ App = {
     event.preventDefault();
 
     var estateId = parseInt($(event.target).data('id'));
-    
+
     var estateInstance;
 
     web3.eth.getAccounts(function (error, accounts) {
@@ -164,7 +194,7 @@ App = {
         estateInstance = instance;
 
         // Execute adopt as a transaction by sending account
-        return estateInstance.buyHouse(estateId, { from: account, to:accounts[2], value: 24,gas: 3000000 });
+        return estateInstance.buyHouse(estateId, { from: account, to: accounts[2], value: 24, gas: 3000000 });
       }).then(function (result) {
         return App.markAdopted();
       }).catch(function (err) {
