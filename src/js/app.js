@@ -58,149 +58,133 @@ App = {
       App.contracts.Estate.setProvider(App.web3Provider);
 
       //App.addHouse(25);
-      //App.getHouses();
-
+      App.getHouses();
       // Use our contract to retrieve and mark the adopted pets
-      return App.markAdopted();
     });
 
     return App.bindEvents();
   },
 
   bindEvents: function () {
-    $(document).on('click', '.btn-adopt', App.handleAdopt);
+    $(document).on('click', '.btn-adopt', App.buyHouse);
     $(document).on('click', '.btn-addHouse', App.addHouse);
     $(document).on('click', '.btn-getHouse', App.getHouses);
+    $(document).on('click', '.btn-withdraw', App.withdraw);
   },
 
-  // getHouses: function () {
-  //   console.log("get houses called")
-  //   var estateInstance;
-
-  //   App.contracts.Estate.deployed().then(function (instance) {
-  //     estateInstance = instance;
-  //     console.log(estateInstance);
-
-  //     return estateInstance.getOwners.call();
-  //   }).then(function (houses) {
-  //     console.log(houses)
-  //   }).catch(function (err) {
-  //     console.log(err.message);
-  //   });
-  // },
   addHouse: async function () {
     console.log("add houses called")
     let estateInstance = await App.contracts.Estate.deployed();
     owner = web3.eth.accounts[0];
 
-    await estateInstance.addHouse($("#price").val(),$("#description").val(), $("#location").val(), { from: owner, gas: 3000000 });
+    await estateInstance.addHouse($("#price").val(), $("#description").val(), $("#location").val(), { from: owner, gas: 3000000 });
     alert("House added!");
     $("#price").val("");
     $("#description").val("");
     $("#location").val("");
     App.getHouses();
-    // $(document).ready(function(){
-    //   $("form").submit(function(){
-        
-    //   });
-    // });
+  },
 
+  withdraw: async function () {
+    console.log("withdraw")
+    let estateInstance = await App.contracts.Estate.deployed();
+    owner = web3.eth.accounts[0];
 
-    
-
+    await estateInstance.withdraw({ from: owner, gas: 3000000 });
+    alert("You withdrew your money!");
+    await App.getHouses();
   },
 
   getHouses: async function () {
     console.log("get houses called")
     let estateInstance = await App.contracts.Estate.deployed();
 
-    // App.contracts.Estate.deployed().then(function (instance) {
-    //   estateInstance = instance;
-    console.log(estateInstance);
-    let house =null;
-    house = await estateInstance.getHouse(0);
     data = [];
     for (i = 0; i < 16; i++) {
-      //console.log(i);
       house = await estateInstance.getHouse(i);
-
-      row = {
-        price: house[1]['c'][0],
-        owner : house[0],
-        desc: house[2],
-        loc: house[3],
+      if (house) {
+        row = {
+          price: house[1]['c'][0],
+          owner: house[0],
+          desc: house[2],
+          loc: house[3],
+        }
+        data.push(row);
       }
-      data.push(row);
+      
+      
     }
     console.log(data);
-
-    var num_houses = data.filter(function(elem) {
+    var num_houses = data.filter(function (elem) {
       return elem.price != 0;
     })
-    console.log(num_houses.length);
 
     var estatesRow = $('#estatesRow');
     var estatesTemplate = $('#estatesTemplate');
-    for (i =0; i < num_houses.length; i++) {
-      console.log(i);
-      console.log(data[i]);
+    for (i = 0; i < num_houses.length; i++) {
       estatesTemplate.find('.panel-title').text(data[i].desc);
       //estatesTemplate.find('img').attr('src', data[i].picture);
       estatesTemplate.find('.owner').text(data[i].owner);
       estatesTemplate.find('.price').text(data[i].price);
       estatesTemplate.find('.location').text(data[i].loc);
-      estatesTemplate.find('.btn-adopt').attr('data-id', data[i].id);
-
+      estatesTemplate.find('.btn-adopt').attr('data-id', i);
       estatesRow.append(estatesTemplate.html());
     }
-
-
+    await App.markBought();
   },
 
-  markAdopted: function () {
-    var estateInstance;
+  markBought: async function () {
+    console.log("mark bought called");
+    owner = web3.eth.accounts[0];
+    let estateInstance = await App.contracts.Estate.deployed();
 
-    App.contracts.Estate.deployed().then(function (instance) {
-      estateInstance = instance;
+    data = [];
+    for (i = 0; i < 16; i++) {
+      house = await estateInstance.getHouse(i);
 
-      return estateInstance.getOwners.call();
-    }).then(function (adopters) {
-      //console.log(adopters);
-      for (i = 0; i < adopters.length; i++) {
-        if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
-          $('.panel-pet').eq(i).find('button').text('Success').attr('disabled', true);
+      if (house) {
+        row = {
+          price: house[1]['c'][0],
+          owner: house[0],
+          desc: house[2],
+          loc: house[3],
         }
+        data.push(row);
       }
-    }).catch(function (err) {
-      console.log(err.message);
-    });
+    }
+    var num_houses = data.filter(function (elem) {
+      return elem.price != 0;
+    })
+
+    for (i = 0; i < num_houses.length; i++) {
+      if (owner == data[i].owner) {
+        $('.panel-pet').eq(i).find('button').text('Owned').attr('disabled', true);
+      }
+    }
   },
 
-  handleAdopt: function (event) {
+  buyHouse: async function (event) {
     event.preventDefault();
 
     var estateId = parseInt($(event.target).data('id'));
+    console.log(estateId);
+    
+    let estateInstance = await App.contracts.Estate.deployed();
+    house = await estateInstance.getHouse(estateId);
+    row = {
+      price: house[1]['c'][0],
+      owner: house[0],
+      desc: house[2],
+      loc: house[3],
+    }
+    console.log(row);
+    owner = web3.eth.accounts[0];
 
-    var estateInstance;
+    //await estateInstance.addHouse($("#price").val(), $("#description").val(), $("#location").val(), { from: owner, gas: 3000000 });
+    await estateInstance.buyHouse(estateId, { from: owner, to: row.owner, value: web3.toWei(row.price, "ether"), gas: 3000000 });
+    alert("Congratulations on your purchase!");
+    App.markBought();
 
-    web3.eth.getAccounts(function (error, accounts) {
-      if (error) {
-        console.log(error);
-      }
-
-      var account = accounts[0];
-
-      App.contracts.Estate.deployed().then(function (instance) {
-        estateInstance = instance;
-
-        // Execute adopt as a transaction by sending account
-        return estateInstance.buyHouse(estateId, { from: account, to: accounts[2], value: 24, gas: 3000000 });
-      }).then(function (result) {
-        return App.markAdopted();
-      }).catch(function (err) {
-        console.log(err.message);
-      });
-    });
   }
 
 };
